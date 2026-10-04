@@ -1,21 +1,27 @@
-export interface Scene {
-  text: string
-  emoji?: string
-}
+import type { Mood, Scene } from './lib/ai'
+
+export type { Mood, Scene }
 
 export interface VideoProps extends Record<string, unknown> {
   title: string
   scenes: Scene[]
-  themeColor?: string
+  themeColor: string
+  musicSrc: string | null
+  musicVolume: number
 }
 
 export const FPS = 30
-export const INTRO_FRAMES = 60 // 2 detik judul
-export const SCENE_FRAMES = 90 // 3 detik per scene
-export const OUTRO_FRAMES = 45
+export const INTRO_FRAMES = 75 // 2,5 detik judul
+export const OUTRO_FRAMES = 60 // 2 detik penutup
 
-export const getDuration = (scenes: Scene[]) =>
-  INTRO_FRAMES + Math.max(scenes.length, 1) * SCENE_FRAMES + OUTRO_FRAMES
+/** Hitung panjang tiap scene agar total sesuai durasi yang dipilih. */
+export const getTimeline = (durationSec: number, sceneCount: number) => {
+  const total = Math.round(durationSec * FPS)
+  const n = Math.max(1, sceneCount)
+  const sceneFrames = Math.floor((total - INTRO_FRAMES - OUTRO_FRAMES) / n)
+  const sceneStartsSec = Array.from({ length: n }, (_, i) => (INTRO_FRAMES + i * sceneFrames) / FPS)
+  return { total, sceneFrames, sceneStartsSec }
+}
 
 export const FORMATS = {
   '9:16': { width: 1080, height: 1920, label: 'Portrait 9:16 (Reels/TikTok)' },

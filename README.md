@@ -1,59 +1,51 @@
-# AI Video Remotion (Cloudflare Pages + NaraRouter)
+# AI Video Remotion
 
-Web app React + Vite + Remotion Player. Naskah video dibuat AI via NaraRouter
-(`https://router.bynara.id/v1`, OpenAI-compatible). API key disimpan aman di
-Cloudflare Pages Functions (`/functions/api`), tidak pernah terlihat di browser.
+Tulis **satu paragraf ide** → AI membuat naskah → Remotion menganimasikan video
+**30–60 detik** lengkap dengan **musik latar & efek suara** → **Download MP4**.
+
+- API key bisa diisi langsung di web (tombol **🔑 API Key**) untuk AI mana pun:
+  NaraRouter, OpenAI, Gemini, OpenRouter, Groq, DeepSeek, Anthropic, atau provider
+  OpenAI-compatible lainnya.
+- Video & audio dirender di browser (`@remotion/web-renderer`), tanpa server render.
 
 ## Struktur
 ```
-functions/api/generate.ts   -> POST /api/generate (panggil NaraRouter)
-functions/api/models.ts     -> GET  /api/models   (daftar model sesuai plan)
-src/App.tsx                 -> UI editor + Player
-src/remotion/VideoComposition.tsx -> animasi Remotion
-src/types.ts                -> tipe & durasi
+functions/api/generate.ts   -> API untuk Cloudflare PAGES
+worker/index.ts             -> API untuk Cloudflare WORKERS
+wrangler.jsonc              -> config Workers (dilewati otomatis oleh Pages)
+server/handler.ts           -> logika API (dipakai Pages, Workers, & npm run dev)
+src/lib/ai.ts               -> preset provider, prompt, parsing naskah
+src/lib/music.ts            -> generator musik + efek whoosh (WAV)
+src/remotion/VideoComposition.tsx -> animasi + audio Remotion
+src/App.tsx                 -> UI
 ```
 
-## 1. Buat API key
-Login ke https://router.bynara.id/keys -> buat key (awalan `sk-nry-`). Salin, hanya muncul sekali.
-
-## 2. Push ke GitHub
-Pakai `package-lock.json` yang baru (sudah sinkron dengan package.json), lalu:
+## Jalankan lokal
 ```
 npm install
-git init && git add . && git commit -m "init"
-git branch -M main
-git remote add origin https://github.com/USERNAME/ai-video-remotion.git
-git push -u origin main
+npm run dev
 ```
+Buka http://localhost:5173 → klik **🔑 API Key** → isi key → tulis ide → **Buat Video**.
 
-## 3. Deploy di Cloudflare Pages
-Workers & Pages -> Create -> Pages -> Connect to Git -> pilih repo.
-- Framework preset: **Vite** (atau None)
+## Deploy — pilih SALAH SATU
+
+### A. Cloudflare Pages
+Workers & Pages → Create → tab **Pages** → Connect to Git → pilih repo.
 - Build command: `npm run build`
 - Build output directory: `dist`
 
-Settings -> Variables and Secrets (Production & Preview):
-- `NARA_API_KEY` = `sk-nry-...` (tipe **Secret**)
-- `NARA_MODEL` = `deepseek-v4-flash` (opsional)
-- `NODE_VERSION` = `22` (opsional, sudah ada `.node-version`)
+### B. Cloudflare Workers (jika Cloudflare mengarahkanmu ke Workers)
+Workers & Pages → Create → **Import a repository**.
+- Build command: `npm run build`
+- Deploy command: `npx wrangler deploy`
 
-Lalu **Retry deployment** agar variabel terbaca.
+### Opsional: key cadangan server
+Settings → Variables and Secrets → `NARA_API_KEY` (Secret), `NARA_MODEL`.
+Dipakai jika pengunjung tidak mengisi API key sendiri.
 
-## Testing lokal (dengan API)
-```
-cp .dev.vars.example .dev.vars   # isi key
-npm run build
-npx wrangler pages dev dist
-```
-`npm run dev` saja hanya menjalankan UI (tombol Generate butuh Functions).
-
-## Download MP4
-Tombol **Download MP4** merender video langsung di browser pengunjung memakai
-`@remotion/web-renderer` (WebCodecs), jadi tidak butuh server dan tetap jalan
-di Cloudflare Pages.
-- Gunakan Chrome / Edge versi terbaru.
-- Jangan pindah tab selama render (bisa melambat).
-- Pilih resolusi "Setengah" untuk render lebih cepat.
-- Hanya CSS tertentu yang didukung (mis. `linear-gradient`, bukan `radial-gradient`).
-  Lihat https://www.remotion.dev/docs/client-side-rendering/limitations
-- Semua paket Remotion harus versi yang sama persis (4.0.532).
+## Troubleshooting
+- **"Server /api/generate tidak aktif"** → folder `functions/` (Pages) atau
+  `worker/` + `wrangler.jsonc` (Workers) tidak ikut ter-push / salah tipe deploy.
+- **AI provider error 401** → API key salah / habis.
+- **Render MP4 gagal** → pakai Chrome/Edge terbaru, jangan pindah tab saat render.
+- Semua paket `remotion` & `@remotion/*` harus versi sama persis (4.0.532).

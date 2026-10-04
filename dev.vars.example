@@ -1,4 +1,5 @@
-# Salin file ini menjadi .dev.vars untuk testing lokal dengan wrangler.
-# Di Cloudflare Pages, isi variabel ini lewat Settings > Variables and Secrets.
+# OPSIONAL — API key cadangan server (dipakai jika user tidak mengisi API key di web).
+# Cloudflare: isi di Settings > Variables and Secrets.
+# Lokal (npm run dev): salin isi ini ke file .env.local
 NARA_API_KEY=sk-nry-xxxxxxxxxxxxxxxx
 NARA_MODEL=deepseek-v4-flash
