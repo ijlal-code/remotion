@@ -1,7 +1,7 @@
 {
   "name": "ai-video-remotion",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,12 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@remotion/player": "^4.0.532",
-    "lucide-react": "^1.52.0",
-    "openai": "^7.27.0",
+    "@remotion/player": "4.0.532",
+    "@remotion/web-renderer": "4.0.532",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "remotion": "^4.0.532"
+    "remotion": "4.0.532"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
